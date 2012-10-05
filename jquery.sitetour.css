@@ -1,7 +1,27 @@
-.sitetour-overlay{
+.sitetour-overlay.dark{
   
   background: none repeat scroll 0 0 #494949;
   background: none repeat scroll 0 0 #000;
+  display: none;
+  /*height: 100%;*/
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 100%;
+  overflow-x:hidden;
+  z-index: 10000000;
+  opacity: 0.6;
+  /*border-top:50px solid #000;
+  border-bottom:50px solid #000;*/
+ 
+  /*opacity: 0.6;
+  background-color:#000;*/
+    
+}
+
+.sitetour-overlay.light{
+  
+  background: none repeat scroll 0 0 #fff;
   display: none;
   /*height: 100%;*/
   left: 0;
@@ -28,7 +48,7 @@
   top: 0;
   width: 100%;
   overflow-x:hidden;
-  z-index: 10000001;
+  /*z-index: 10000001;*/
   opacity: 1.0;
   /*border-top:50px solid #000;
   border-bottom:50px solid #000;*/
@@ -46,7 +66,7 @@
   padding:20px;
   position:fixed;
   z-index:10000002;
-  background:#000;
+  background:#333;
   color:#fff;
   cursor:pointer;
   
@@ -130,12 +150,13 @@
   /*width:550px;*/
   width:auto;
   display:none;
-  z-index: 10000002;
+  z-index: 10000006;
   height:100px;
-  background:#000;
+  background:#111;
+  opacity:0.9
   border:5px solid #000;
   color:#333;
-  border-radius:10px;
+  border-radius:7px;
   padding:30px
 }
 
@@ -167,10 +188,25 @@
 .sitetour-text-navigation{
   /*float:left;*/
   display:block;
+  
 }
 
-.sitetour-force-white{
+.sitetour-force-bg{
+	border-radius:10px;
+	-moz-border-radius:10px;
+	-webkit-border-radius:10px;
+	
+	padding:10px;
+	overflow:hidden;
+	
+}
+
+.sitetour-force-bg.dark{
   background-color:#fff !important;
+}
+
+.sitetour-force-bg.light{
+  background-color:#333 !important;
 }
 
 .sitetour-text-navigation a.sitetour-prev, 
@@ -228,3 +264,18 @@
     width: 300px;
 }
 */
+
+.blurry-text{
+	color: transparent;
+	text-shadow: 0 0 5px rgba(0,0,0,0.5);
+}
+
+.non-blurry-text.dark{
+	color:#333;
+	text-shadow:none;
+}
+
+.non-blurry-text.light{
+	color:#999;
+	text-shadow:none;
+}

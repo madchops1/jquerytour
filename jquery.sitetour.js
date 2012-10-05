@@ -26,6 +26,8 @@ Dependencies:
         	//Default tour options
         	settings = $.extend({
     	      	autoPlay 			: 	false, 					// coming soon... 
+    	      	defaultDelay		:	'5000',					// the default delay between steps in autoplay mode
+    	      	theme 				: 	'dark', 				// or light, switches the overall appearance
 				data				: 	[],						// array of data elements... 
 				startItem			:	0,						// defaults to the first 
 				initialDelay		: 	1000,  					// delay after tour is started till it starts 
@@ -33,7 +35,7 @@ Dependencies:
 				openButtonText		:	'tour',					// default "take tour" button text
 				getStartedText		:	'Get Started',			// get started text
 				textBoxTopOffset	:	100,					// how far the text box will be from each focused element
-				scrollTopOffset		:	250,
+				/*scrollTopOffset		:	250,					// how far the window will scroll from the top of the element/text?*/
 				itemDelay			:	1000,					// the timeout ms for the show item function
 				elementDelay		:	500						// the timeout ms for the show element&shadow delay adds to itemDelay
     	    }, options);
@@ -45,7 +47,7 @@ Dependencies:
         	windowHeight = parseInt($(window.document).height());	// Window height 
 			
 			// Append the tour to the page 
-			$("body").append('<div class="sitetour-close">'+settings.openButtonText+'</div><div class="sitetour-overlay" style="height:'+windowHeight+'px;"></div><div class="sitetour-wrapper"><div class="sitetour-fakemouse"></div><div class="sitetour-text"><div class="sitetour-text-main"><h1></h1><p></p></div><div class="sitetour-text-navigation"><a class="sitetour-prev">Previous</a> <a class="sitetour-next">Next</a> <a class="sitetour-get-started">' + settings.getStartedText + '</a></div><!-- <div class="sitetour-text-shadow"></div> --></div><div class="sitetour-spotlight"><div class="sitetour-dropshadow"></div></div></div>');
+			$("body").append('<div class="sitetour-close">'+settings.openButtonText+'</div><div class="sitetour-overlay '+settings.theme+'" style="height:'+windowHeight+'px;"></div><div class="sitetour-wrapper"><div class="sitetour-fakemouse"></div><div class="sitetour-text"><div class="sitetour-text-main"><h1></h1><p></p></div><div class="sitetour-text-navigation"><a class="sitetour-prev">Previous</a> <a class="sitetour-next">Next</a> <a class="sitetour-get-started">' + settings.getStartedText + '</a></div><!-- <div class="sitetour-text-shadow"></div> --></div><div class="sitetour-spotlight"><div class="sitetour-dropshadow"></div></div></div>');
 			
 			// Maximize
 			// TODO... 
@@ -146,6 +148,10 @@ Dependencies:
         	setTimeout(function(){
         		overlay.fadeIn('slow');
         		wrapper.fadeIn('slow');
+        		
+        		// blur text
+        		$('body *').addClass('blurry-text');
+        		
         		if(settings.data){
             		console.log("THIS: ");
             		console.log(this);
@@ -168,7 +174,7 @@ Dependencies:
 	        	//currentElementOffset	= currentElement.offset();
 				currentElement.css('position' , currentElementPosition);
 				currentElement.removeClass('sitetour-force-white');
-				currentElement.zIndex(currentElementZindex);
+				currentElement.css('z-index',currentElementZindex);
 				if($.isFunction(tourItemArray['afterHide'])) {
 					// call user provided method
 					tourItemArray['afterHide'].call();
@@ -230,9 +236,10 @@ Dependencies:
 					//currentElementMargin 	= currentElement.css('margin');
 					currentElementOffset	= currentElement.offset();
 					currentElementZindex	= currentElement.css('z-index');
+					currentElementWidth 	= currentElement.css('width').replace('px','');
 					
 					//console.log('OFFSET: ');
-					//console.log(currentElement.offset());
+					console.log('CURRENT WIDTH: '+currentElementWidth);
 					
 					// Centers, and shows the spotlight .5 sec after overlay
 					//spotlight.css('top',(($(window).height()/2) - (spotlight.height()/2))+'px');
@@ -240,12 +247,18 @@ Dependencies:
 					// Bring up the spotlight in .5 sec
 					if(fixedFlag != 1){
 						
-						// Scroll to that element, only scroll to elements that are not fixed
+						// get this steps default scroll offset
 						if(typeof tourItemArray['scrollTopOffset'] == 'undefined'){
-							scrollTopOffset = settings.scrollTopOffset;
+							scrollTopOffset = currentElementOffset.top;
 						} else {
 							scrollTopOffset = tourItemArray['scrollTopOffset'];
 						}
+						
+						// get this steps default textbox position
+						if(typeof tourItemArray['textPosition'] == 'undefined'){ tourItemArray['textPosition'] = 'top'; }
+
+						// Scroll to that element, only scroll to elements that are not fixed
+						
 						$.scrollTo(''+tourItemArray['selector']+'',900,{ offset : scrollTopOffset });
 						
 						paddingTop = parseInt(currentElement.css('padding-top').replace('px',''));
@@ -269,12 +282,35 @@ Dependencies:
 						textbox.children('.sitetour-text-main').children('h1').html(tourItemArray['title']);
 						textbox.children('.sitetour-text-main').children('p').html(tourItemArray['text']);
 						
-						textBoxTop 	= parseInt(currentElementOffset.top - (textbox.height()) - settings.textBoxTopOffset);
-						if(textBoxTop <= 10){ textBoxTop = 10; }		// Buffer the top of the window by 10px
-						textBoxLeft = parseInt(currentElementOffset.left + 20);
+						console.log('TextPosition: '+tourItemArray['textPosition']);
 						
-						//console.log("textBoxTop :"+textBoxTop);
-						//console.log("textBoxLeft :"+textBoxLeft);
+						if(tourItemArray['textPosition'] == 'left'){
+							textBoxTop 	= parseInt(currentElementOffset.top) + 30;
+							textBoxLeft = parseInt(currentElementOffset.left) - parseInt(textbox.width());
+						}
+						else if(tourItemArray['textPosition'] == 'right'){
+							textBoxTop 	= parseInt(currentElementOffset.top) + 30;
+							textBoxLeft = parseInt(currentElementOffset.left) + parseInt(currentElementWidth) - 10;
+
+							//console.log("textBoxLeft width + offset:"+currentElementWidth+" + " +currentElementOffset.left);
+							//console.log('MADE IT!!!!');
+						}
+						else if(tourItemArray['textPosition'] == 'bottom'){
+							textBoxTop 	= parseInt(currentElementOffset.top - (textbox.height()) - settings.textBoxTopOffset);
+							if(textBoxTop <= 10){ textBoxTop = 10; }		// Buffer the top of the window by 10px
+							textBoxLeft = parseInt(currentElementOffset.left + 20);
+						}
+						else{
+							// TOP
+							textBoxTop 	= parseInt(currentElementOffset.top - (textbox.height()) - settings.textBoxTopOffset);
+							if(textBoxTop <= 10){ textBoxTop = 10; }		// Buffer the top of the window by 10px
+							textBoxLeft = parseInt(currentElementOffset.left + 20);
+						}
+						
+						
+						
+						console.log("textBoxTop :"+textBoxTop);
+						console.log("textBoxLeft :"+textBoxLeft);
 						
 						textbox.css("top",textBoxTop+'px');
 						textbox.css("left",textBoxLeft+'px');
@@ -325,11 +361,40 @@ Dependencies:
 							currentElement.css('position','relative'); 
 						}
 						
+						currentElement.css('z-index','10000004');
 						
-						currentElement.zIndex(10000004);
-						currentElement.hide();
-						currentElement.addClass('sitetour-force-white');
-						currentElement.show("slide", { direction: "down" }, 'fast');
+						// unblur the element
+						currentElement.removeClass('blurry-text');
+						currentElement.find('*').removeClass('blurry-text');
+						
+						currentTPadding = currentElement.css('padding-top');
+						currentLPadding = currentElement.css('padding-left');
+						currentBPadding = currentElement.css('padding-bottom');
+						currentRPadding = currentElement.css('padding-right');
+						
+						currentWidth = currentElement.css('width').replace('px','');
+						newWidth = parseInt(currentWidth - 20)
+						console.log('NEW WIDTH: '+newWidth);
+						currentElement.css('width', ''+newWidth+'px');
+						
+						//currentElement.css('padding','10px');
+						
+						if(settings.theme = 'light'){
+							currentElement.addClass('sitetour-force-bg').addClass('light');				// Force bg
+							currentElement.addClass('non-blurry-text').addClass('light');				// make non blurry
+							currentElement.find('*').addClass('non-blurry-text').addClass('light');		// make non blurry
+						} else {
+							currentElement.addClass('sitetour-force-bg').addClass('dark');
+							currentElement.addClass('non-blurry-text').addClass('dark');
+							currentElement.find('*').addClass('non-blurry-text').addClass('dark');
+						}
+						
+						//currentElement.show("slide", { direction: "down" }, 'fast');
+						//currentElement.show("slide", { direction: "down" }, 'fast');
+						//currentElement.show('fast');
+						/**
+						 * call any callback function on this step
+						 */
 						if($.isFunction(tourItemArray['afterShow'])) {
 							// call user provided method
 							tourItemArray['afterShow'].call();
@@ -347,10 +412,10 @@ Dependencies:
 						//dropShadowTop 		= parseInt((dropShadow.parent('div').height()/2) - (currentElement.height()/2) + 2);
 						dropShadowHeight 		= parseInt(currentElement.height() / 2);
 						if(dropShadowHeight > parseInt(spotlight.height()/3)){ dropShadowHeight = parseInt(spotlight.height()/3); }
-						dropShadowWidth 		= parseInt(currentElement.width());
-						dropShadowBotom			= parseInt((spotlight.height()/2) - 4);
+						dropShadowWidth 		= parseInt(currentElement.width() + 20);
+						dropShadowBotom			= parseInt((spotlight.height()/2) - 24);
 						dropShadowLeft			= parseInt(dropShadow.parent('div').width() - (currentElement.width() + (currentElement.width()/4)));
-						dropShadowLeft 			= parseInt((dropShadow.parent('div').width()/2) - (dropShadowWidth/2));
+						dropShadowLeft 			= parseInt((dropShadow.parent('div').width()/2) - (dropShadowWidth/2) + 10);
 						console.log("dropShadowBotom: "+dropShadowBotom); 		// Positions dropshadow at the base ob element 
 						console.log("dropShadowLeft: "+dropShadowLeft);
 						console.log("dropShadowHeight: "+dropShadowHeight);
@@ -363,7 +428,8 @@ Dependencies:
 						dropShadow.css('-moz-border-radius',currentElement.css('-moz-border-radius'));
 						dropShadow.css('-webkit-border-radius',currentElement.css('-moz-webkit-radius'));
 						dropShadow.css('-ms-border-radius',currentElement.css('-moz-border-radius'));
-						dropShadow.show("slide", { direction: "down" }, 'fast');
+						//dropShadow.show("slide", { direction: "down" }, 'fast');
+						dropShadow.show('fast');
 						
 						// Navigation
 						// Hide/Show Prev
@@ -403,6 +469,10 @@ Dependencies:
         			$.siteTour("hideItem");
         			overlay.fadeOut('slow');
         			wrapper.fadeOut('slow');
+        			// blur text
+            		$('body *').removeClass('blurry-text');
+            		$('body *').removeClass('non-blurry-text');
+            		
         			closebutton.html(settings.openButtonText)
         		} else {
         			console.log('OPENING TOUR');
